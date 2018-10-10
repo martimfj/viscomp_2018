@@ -98,10 +98,10 @@ def codebookConstruct(codebooks, image, t):
     print("Imagem {} done in {} seconds".format(t+1, (end-start)))
     
 def codebookTraining(size):
-    image_dir = "/home/martimfj/Downloads/ImagensVisao/S0_BG/Crowd_PETS09/S0/Background/View_001/Time_13-38/"
+    image_dir = "/home/martimfj/Downloads/ImagensVisao/S0_BG/Crowd_PETS09/S0/Background/View_001/Time_13-32/"
     image_file_list = os.listdir(image_dir)
     np.random.shuffle(image_file_list)
-    image = cv.imread(image_dir + "00000001.jpg")
+    image = cv.imread(image_dir + "00000111.jpg")
     height, width, s = image.shape
     codebooks = codebookCreate(height, width)
 
@@ -112,14 +112,14 @@ def codebookTraining(size):
 train_codebooks = False
 if train_codebooks:
     start = time.time()
-    codebookTraining(15)
+    codebookTraining(10)
     codebooks = codebookLoad()
     end = time.time()
     print("Total training time: {} seconds".format(end-start))
 else:
     codebooks = codebookLoad()
 
-def foregroundDetector(pixel, codeword_list, e2 = 8):
+def foregroundDetector(pixel, codeword_list, e2 = 5000):
     pixel = toFloat(pixel)
     I = np.linalg.norm(pixel)
 
@@ -141,7 +141,7 @@ def backgroundSubtraction(image, codebooks):
                 image_no_bg[i][j] = [0, 0, 0]
     return image_no_bg
 
-image_dir = "/home/martimfj/Downloads/ImagensVisao/S1_L1/Crowd_PETS09/S1/L1/Time_13-57/View_001/frame_0000.jpg"
+image_dir = "/home/martimfj/Downloads/ImagensVisao/S0_BG/Crowd_PETS09/S0/Background/View_001/Time_13-19/00000190.jpg"
 image_test = cv.cvtColor(cv.imread(image_dir), cv.COLOR_BGR2RGB)
 plt.imshow(image_test)
 plt.show()
@@ -150,3 +150,17 @@ result = backgroundSubtraction(image_test, codebooks)
 plt.imshow(result)
 plt.show()
 
+gray = cv.cvtColor(result, cv.COLOR_RGB2GRAY)
+blurred = cv.GaussianBlur(gray, (7, 7), 0)
+edged = cv.Canny(blurred, 20, 140)
+plt.imshow(blurred)
+plt.show()
+
+(_, contours, _) = cv.findContours(edged.copy(), cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+print(len(contours))
+
+people = 0
+for i in contours:
+    if cv.contourArea(i) > 200 and cv.contourArea(i) < 250:
+        people += 1
+print(people)
